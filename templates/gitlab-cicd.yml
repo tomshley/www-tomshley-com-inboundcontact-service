@@ -1,0 +1,338 @@
+#
+# Copyright 2023 Tomshley LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, softomshley_breakground
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @author Thomas Schena @sgoggles <https://github.com/sgoggles> | <https://gitlab.com/sgoggles>
+#
+
+image:
+  name: "registry.gitlab.com/tomshley/brands/global/tware/tech/products/provisioning/microcontainer-lib-docker/tools_provisioning_cicd_gitlab_sbtdockertofu:latest"
+  # Example: name: "${CI_REGISTRY}/${CI_PROJECT_PATH}/provisioning_terraform_with_py:latest"
+
+stages:
+  - .pre
+  - test.breakground
+  - test.containers
+  - test.provisioning
+  - test.finalize
+  - build.breakground
+  - build.containers
+  - build.provisioning
+  - build.finalize
+  - deploy.breakground
+  - deploy.containers
+  - deploy.provisioning
+  - deploy.finalize
+  - .post
+
+.flow-generic-variables:
+  before_script:
+    - echo "DOCKERS_GROUPNAME = $DOCKERS_GROUPNAME"
+    - echo "CI_PROJECT_PATH = $CI_PROJECT_PATH"
+    - echo "CI_PROJECT_PATH = $CI_PROJECT_PATH"
+    - if [ -n "${DOCKERS_GROUPNAME-}" ]; then export TOMSHLEY_DOCKERS_BUILD_GROUPNAME="${DOCKERS_GROUPNAME}"; elif [ -n "${CI_PROJECT_NAMESPACE-}" ]; then export TOMSHLEY_DOCKERS_BUILD_GROUPNAME="${CI_PROJECT_NAMESPACE}"; fi
+    - if [ -n "${CI_COMMIT_TAG-}" ]; then export TOMSHLEY_DOCKERS_BUILD_REF="${CI_COMMIT_TAG}"; elif [ -n "${CI_COMMIT_REF_SLUG-}" ]; then export TOMSHLEY_DOCKERS_BUILD_REF=${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}; fi
+    - echo "CI_COMMIT_TAG (Deploy Containers) = ${CI_COMMIT_TAG}"
+    - echo "TOMSHLEY_DOCKERS_BUILD_REF  (Deploy Containers) = ${TOMSHLEY_DOCKERS_BUILD_REF}"
+
+.flow-generic-artifacts:
+  artifacts: ~
+
+.flow-generic-test-breakground:
+  script:
+    - echo ".flow-generic-test-breakground"
+
+.flow-generic-test-containers:
+  script:
+    - echo ".flow-generic-test-containers"
+
+.flow-generic-test-provisioning:
+  script:
+    - echo ".flow-generic-test-provisioning"
+
+.flow-generic-test-finalize:
+  script:
+    - echo ".flow-generic-test-finalize"
+
+.flow-generic-build-breakground:
+  script:
+    - echo ".flow-generic-build-breakground"
+
+.flow-generic-build-containers:
+  script:
+    - echo ".flow-generic-build-containers"
+
+.flow-generic-build-provisioning:
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/provisioning_terraform_with_py:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}
+  script:
+    - echo ".flow-generic-build-provisioning"
+
+.flow-generic-build-finalize:
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/provisioning_terraform_with_py:${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}
+  script:
+    - echo ".flow-generic-build-finalize"
+
+.flow-generic-deploy-breakground:
+  script:
+    - echo ".flow-generic-deploy-breakground"
+
+.flow-generic-deploy-containers:
+  script:
+    - echo ".flow-generic-deploy-containers"
+
+.flow-generic-deploy-provisioning:
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/provisioning_terraform_with_py:${CI_COMMIT_TAG}
+  script:
+    - echo ".flow-generic-deploy-provisioning"
+
+.flow-generic-deploy-finalize:
+  image: ${CI_REGISTRY}/${CI_PROJECT_PATH}/provisioning_terraform_with_py:${CI_COMMIT_TAG}
+  script:
+    - echo ".flow-generic-deploy-finalize"
+
+
+test.breakground:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-test-breakground
+  tags:
+    - saas-linux-xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  except:
+    - tags
+  stage: test.breakground
+  artifacts:
+    expire_in: 8 hours
+
+test.containers:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-test-containers
+  tags:
+    - saas-linux-xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  except:
+    - tags
+  stage: test.containers
+  artifacts:
+    expire_in: 8 hours
+
+test.provisioning:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-test-provisioning
+  tags:
+    - saas-linux-xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  except:
+    - tags
+  stage: test.provisioning
+  artifacts:
+    expire_in: 8 hours
+
+test.finalize:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-test-finalize
+  tags:
+    - saas-linux-xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  except:
+    - tags
+  stage: test.finalize
+  artifacts:
+    expire_in: 8 hours
+
+build.breakground:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-build-breakground
+  stage: build.breakground
+  except:
+    - tags
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  artifacts:
+    expire_in: 8 hours
+
+build.containers:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-build-containers
+  stage: build.containers
+  except:
+    - tags
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  artifacts:
+    expire_in: 8 hours
+
+build.provisioning:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-build-provisioning
+  stage: build.provisioning
+  except:
+    - tags
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  artifacts:
+    expire_in: 8 hours
+
+build.finalize:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-build-finalize
+  stage: build.finalize
+  except:
+    - tags
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  artifacts:
+    expire_in: 8 hours
+
+job-flow-hotfix-finish:
+  stage: .post
+  only:
+    - /^hotfix\/.*$/
+  script:
+    - source /opt/tomshley/provisioning/tools/cicd/gitlab/scripts/bin/cicd-flow-hotfix-finish.sh
+  when: manual
+  allow_failure: false
+
+job-flow-release-start:
+  stage: .post
+  tags:
+    - saas-linux-xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  only:
+    - develop
+  script:
+    - source /opt/tomshley/provisioning/tools/cicd/gitlab/scripts/bin/cicd-flow-release-start.sh
+  when: manual
+  allow_failure: false
+
+job-flow-release-publish:
+  stage: deploy.finalize
+  only:
+    - /^release\/.*$/
+  script:
+    - source /opt/tomshley/provisioning/tools/cicd/gitlab/scripts/bin/cicd-flow-release-publish.sh
+
+job-flow-release-finish:
+  stage: .post
+  only:
+    - /^release\/.*$/
+  script:
+    - source /opt/tomshley/provisioning/tools/cicd/gitlab/scripts/bin/cicd-flow-release-finish.sh
+
+  when: manual
+  allow_failure: false
+
+job-flow-feature-start:
+  stage: .pre
+  only:
+    - /^feature\/.*$/
+  script:
+    - source /opt/tomshley/provisioning/tools/cicd/gitlab/scripts/bin/cicd-flow-feature-gitlab-merge-request.sh
+
+deploy-breakground:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-deploy-breakground
+  environment: production
+  tags:
+    - saas-linux-2xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  only:
+    - tags
+  except:
+    - branches
+  stage: deploy.breakground
+
+deploy.containers:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-deploy-containers
+  environment: production
+  tags:
+    - saas-linux-2xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  only:
+    - tags
+  except:
+    - branches
+  stage: deploy.containers
+
+deploy.provisioning:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-deploy-provisioning
+  environment: production
+  tags:
+    - saas-linux-2xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  only:
+    - tags
+  except:
+    - branches
+  stage: deploy.provisioning
+
+deploy.finalize:
+  extends:
+    - .flow-generic-variables
+    - .flow-generic-artifacts
+    - .flow-generic-deploy-finalize
+  environment: production
+  tags:
+    - saas-linux-2xlarge-amd64
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  only:
+    - tags
+  except:
+    - branches
+  stage: deploy.finalize

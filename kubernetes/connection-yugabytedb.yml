@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: yugabytedb-connection
+  namespace: www-tomshley-com-contact-service-namespace
+data:
+  hostname: $YUGABYTEDB_HOSTNAME_BASE64
+  username: $YUGABYTEDB_USERNAME_BASE64
+  password: $YUGABYTEDB_PASSWORD_BASE64

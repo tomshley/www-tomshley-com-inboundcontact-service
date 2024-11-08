@@ -1,0 +1,11 @@
+{
+  "kind": "Namespace",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "www-tomshley-com-data-yb-1",
+    "labels": {
+      "name": "www-tomshley-com-data-yb-1"
+    }
+  }
+}
+
