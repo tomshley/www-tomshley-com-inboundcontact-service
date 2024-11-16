@@ -1,0 +1,82 @@
+#
+# Copyright 2023 Tomshley LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, softomshley_breakground
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# @author Thomas Schena @sgoggles <https://github.com/sgoggles> | <https://gitlab.com/sgoggles>
+#
+
+
+image:
+  name: "registry.gitlab.com/tomshley/brands/global/tware/tech/products/provisioning/microcontainer-lib-docker/tools_provisioning_cicd_gitlab_sbtdockertofu:latest"
+
+#stages:
+#  - .sbtdocker
+#
+#.flow-generic-variables:
+#  before_script:
+#    - echo "DOCKERS_GROUPNAME = $DOCKERS_GROUPNAME"
+#    - echo "CI_PROJECT_PATH = $CI_PROJECT_PATH"
+#    - echo "CI_PROJECT_PATH = $CI_PROJECT_PATH"
+#    - if [ -n "${DOCKERS_GROUPNAME-}" ]; then export TOMSHLEY_DOCKERS_BUILD_GROUPNAME="${DOCKERS_GROUPNAME}"; elif [ -n "${CI_PROJECT_NAMESPACE-}" ]; then export TOMSHLEY_DOCKERS_BUILD_GROUPNAME="${CI_PROJECT_NAMESPACE}"; fi
+#    - if [ -n "${CI_COMMIT_TAG-}" ]; then export TOMSHLEY_DOCKERS_BUILD_REF="${CI_COMMIT_TAG}"; elif [ -n "${CI_COMMIT_REF_SLUG-}" ]; then export TOMSHLEY_DOCKERS_BUILD_REF=${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}; fi
+#    - echo "CI_COMMIT_TAG (Deploy Containers) = ${CI_COMMIT_TAG}"
+#    - echo "TOMSHLEY_DOCKERS_BUILD_REF  (Deploy Containers) = ${TOMSHLEY_DOCKERS_BUILD_REF}"
+#
+#.sbtdocker:
+#  extends:
+#    - .flow-generic-variables
+#  tags:
+#    - saas-linux-xlarge-amd64
+#  services:
+#    - name: docker:24.0.5-dind-alpine3.18
+#      alias: dockerdaemon
+#  stage: test.breakground
+#
+#
+#
+#job-flow-feature-start:
+#  stage: .sbtdocker
+#  script:
+#    - source /opt/tomshley/provisioning/tools/cicd/gitlab/scripts/bin/cicd-flow-feature-gitlab-merge-request.sh
+#    - sbt "Docker / publish"
+
+stages:
+  - build
+  - deploy
+
+
+build:
+  stage: build
+  tags: [ saas-linux-medium-amd64 ]
+  image: registry.gitlab.com/tomshley/brands/global/tware/tech/products/provisioning/microcontainer-lib-docker/tools_provisioning_cicd_gitlab_sbtdockertofu:latest
+  services:
+    - name: docker:24.0.5-dind-alpine3.18
+      alias: dockerdaemon
+  script:
+    - curl --silent "https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer" | bash
+    - ls -al
+    - ls -al .secure_files
+    - echo "RUNNING THE DOCKER BUILD"
+    - export DOCKER_HOST=tcp://dockerdaemon:2375/
+    - export DOCKER_DRIVER=overlay2
+    - export DOCKER_TLS_CERTDIR=""
+    - export DOCKER_CLI_EXPERIMENTAL=enabled
+    - docker info
+    - docker-compose --version
+    - docker buildx version
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker buildx create --name tomshley_buildx
+    - docker buildx use tomshley_buildx
+    - docker buildx inspect tomshley_buildx --bootstrap
+    - sbt Docker/publish
