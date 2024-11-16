@@ -1,3 +1,10 @@
+### Local DDL
+```shell
+docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_persistence_tables_yugabyte.sql
+docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_projection_tables_yugabyte.sql
+docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_query_tables_yugabyte.sql
+```
+
 ### Setup Azure
 ```shell
 az login
@@ -30,6 +37,9 @@ export K8S_DOCKER_CONFIG_AUTH_BASE64=$(echo "$K8S_DOCKER_CONFIG_AUTH" | base64)
 export YUGABYTEDB_HOSTNAME_BASE64=$(echo -n "$YUGABYTEDB_HOSTNAME" | base64 -w 0);
 export YUGABYTEDB_USERNAME_BASE64=$(echo -n "$YUGABYTEDB_USERNAME" | base64 -w 0);
 export YUGABYTEDB_PASSWORD_BASE64=$(echo -n "$YUGABYTEDB_PASSWORD" | base64 -w 0);
+export KAFKA_BROKER_SERVER_BASE64=$(echo -n "$CONFLUENTCLOUD_BROKER_ENDPOINT" | base64 -w 0);
+export KAFKA_CLUSTER_KEY_BASE64=$(echo -n "$CONFLUENTCLOUD_CLUSTER_KEY" | base64 -w 0);
+export KAFKA_CLUSTER_SECRET_BASE64=$(echo -n "$CONFLUENTCLOUD_CLUSTER_PASSWORD" | base64 -w 0);
 ```
 
 ### Local Dev - Setup Minikube
@@ -82,7 +92,7 @@ helm install www-tomshley-com-data-yb yugabytedb/yugabyte \
 ```
 
 ```shell
-kubectl --namespace www-tomshley-com-data-yb-1 exec -it yb-tserver-1 -- sh -c /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_tables_yugabyte.sql
+kubectl --namespace www-tomshley-com-data-yb-1 exec -it yb-tserver-1 -- sh -c /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_persistence_tables_yugabyte.sql
 ```
 
 If you want to set up port forwarding or a yql shell
@@ -108,6 +118,7 @@ kubectl delete namespace www-tomshley-com-contact-service-namespace
 kubectl apply -f kubernetes/namespace.json
 kubectl config set-context --current --namespace=www-tomshley-com-contact-service-namespace
 envsubst < kubernetes/credentials-registry.yml | kubectl apply -f -
+envsubst < kubernetes/connection-kafka.yml | kubectl apply -f -
 envsubst < kubernetes/connection-yugabytedb.yml | kubectl apply -f -
 kubectl apply -f kubernetes/rbac.yml
 kubectl apply -f kubernetes/service.yml

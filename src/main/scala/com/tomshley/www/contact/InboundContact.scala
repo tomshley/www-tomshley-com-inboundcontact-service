@@ -1,25 +1,11 @@
 package com.tomshley.www.contact
 
-import org.apache.pekko.actor.typed.{
-  ActorRef,
-  ActorSystem,
-  Behavior,
-  SupervisorStrategy
-}
-import org.apache.pekko.cluster.sharding.typed.scaladsl.{
-  ClusterSharding,
-  Entity,
-  EntityContext,
-  EntityTypeKey
-}
+import com.tomshley.www.contact.models.ContactCard
+import org.apache.pekko.actor.typed.{ActorRef, ActorSystem, Behavior, SupervisorStrategy}
+import org.apache.pekko.cluster.sharding.typed.scaladsl.{ClusterSharding, Entity, EntityContext, EntityTypeKey}
 import org.apache.pekko.pattern.StatusReply
 import org.apache.pekko.persistence.typed.PersistenceId
-import org.apache.pekko.persistence.typed.scaladsl.{
-  Effect,
-  EventSourcedBehavior,
-  ReplyEffect,
-  RetentionCriteria
-}
+import org.apache.pekko.persistence.typed.scaladsl.{Effect, EventSourcedBehavior, ReplyEffect, RetentionCriteria}
 
 import java.time.Instant
 import java.util.UUID
@@ -31,15 +17,9 @@ object InboundContact {
   sealed trait Command extends CborSerializable
 
   // Event
-  sealed trait Event extends CborSerializable {
-    def contactUUID: UUID
-    def name: String
-    def phone: String
-    def email: String
-    def message: String
-  }
+  sealed trait Event extends CborSerializable with ContactCard
 
-  final case class CustomerContactRequest(
+  final case class CreateCustomerContactRequest(
     name: String,
     phone: String,
     email: String,
@@ -55,27 +35,30 @@ object InboundContact {
       extends Command
   final case class Get(replyTo: ActorRef[Summary]) extends Command
 
-  private final case class CustomerContactReceived(contactUUID: UUID,
+  final case class CustomerContactReceived(contactUUID: UUID,
                                                    name: String,
                                                    phone: String,
                                                    email: String,
-                                                   message: String)
+                                                   message: String,
+                                                   inboundTime: Instant)
       extends Event
 
-  private final case class ContactTossed(salespersonId: String,
+  final case class ContactTossed(salespersonId: String,
                                          contactUUID: UUID,
                                          name: String,
                                          phone: String,
                                          email: String,
-                                         message: String)
+                                         message: String,
+                                         tossTime: Instant)
       extends Event
 
-  private final case class ContactKept(salespersonId: String,
+  final case class ContactKept(salespersonId: String,
                                        contactUUID: UUID,
                                        name: String,
                                        phone: String,
                                        email: String,
-                                       message: String)
+                                       message: String,
+                                       keptTime: Instant)
       extends Event
 
   final case class State(contactUUID: Option[UUID],
@@ -83,8 +66,9 @@ object InboundContact {
                          phone: Option[String],
                          email: Option[String],
                          message: Option[String],
+                         inboundTime: Option[Instant],
                          tossTime: Option[Instant],
-                         keepTime: Option[Instant])
+                         keptTime: Option[Instant])
       extends CborSerializable {
     protected[InboundContact] def contactRequestReceived: Boolean =
       contactUUID.isDefined
@@ -95,8 +79,9 @@ object InboundContact {
         phone = phone,
         email = email,
         message = message,
+        inboundTime = inboundTime,
         tossTime = Some(Instant.now()),
-        keepTime = None
+        keptTime = None
       )
     }
     protected[InboundContact] def keepContact: State = {
@@ -106,8 +91,9 @@ object InboundContact {
         phone = phone,
         email = email,
         message = message,
+        inboundTime = inboundTime,
         tossTime = None,
-        keepTime = Some(Instant.now())
+        keptTime = Some(Instant.now())
       )
     }
     protected[InboundContact] def receiveCustomerContact(
@@ -115,7 +101,8 @@ object InboundContact {
       name: String,
       phone: String,
       email: String,
-      message: String
+      message: String,
+    inboundTime: Instant
     ): State =
       copy(
         contactUUID = Some(uuid),
@@ -123,12 +110,13 @@ object InboundContact {
         phone = Some(phone),
         email = Some(email),
         message = Some(message),
+        inboundTime = Some(inboundTime),
         tossTime = tossTime,
-        keepTime = keepTime
+        keptTime = keptTime
       )
 
     protected[InboundContact] def isTossed: Boolean = tossTime.isDefined
-    protected[InboundContact] def isKept: Boolean = keepTime.isDefined
+    protected[InboundContact] def isKept: Boolean = keptTime.isDefined
     protected[InboundContact] def isCreated: Boolean =
       contactUUID.isDefined && name.isDefined && phone.isEmpty && email.isDefined && message.isDefined
 
@@ -145,8 +133,9 @@ object InboundContact {
         phone = None,
         email = None,
         message = None,
+        inboundTime = None,
         tossTime = None,
-        keepTime = None
+        keptTime = None
       )
   }
 
@@ -201,7 +190,7 @@ object InboundContact {
       case Get(replyTo) =>
         Effect.reply(replyTo)(state.toSummary)
 
-      case CustomerContactRequest(name, phone, email, message, replyTo) =>
+      case CreateCustomerContactRequest(name, phone, email, message, replyTo) =>
         if (state.contactRequestReceived) {
           Effect.reply(replyTo)(
             StatusReply.Error(s"Contact request id already initiated")
@@ -209,7 +198,7 @@ object InboundContact {
         } else {
           Effect
             .persist(
-              CustomerContactReceived(contactUUID, name, phone, email, message)
+              CustomerContactReceived(contactUUID, name, phone, email, message, Instant.now())
             )
             .thenReply(replyTo) { stateResult =>
               StatusReply.Success(stateResult.toSummary)
@@ -229,7 +218,8 @@ object InboundContact {
                 state.name.get,
                 state.phone.get,
                 state.email.get,
-                state.message.get
+                state.message.get, 
+                Instant.now()
               )
             )
             .thenReply(replyTo) { stateResult =>
@@ -250,7 +240,8 @@ object InboundContact {
                 state.name.get,
                 state.phone.get,
                 state.email.get,
-                state.message.get
+                state.message.get, 
+                Instant.now()
               )
             )
             .thenReply(replyTo) { stateResult =>
@@ -262,11 +253,11 @@ object InboundContact {
 
   private def handleEvent(state: State, event: Event): State = {
     event match {
-      case CustomerContactReceived(contactUUID, name, phone, email, message) =>
-        state.receiveCustomerContact(contactUUID, name, phone, email, message)
-      case ContactTossed(_, _, _, _, _, _) =>
+      case CustomerContactReceived(contactUUID, name, phone, email, message, inboundTime) =>
+        state.receiveCustomerContact(contactUUID, name, phone, email, message, inboundTime)
+      case ContactTossed(_, _, _, _, _, _, _) =>
         state.tossContact
-      case ContactKept(_, _, _, _, _, _) =>
+      case ContactKept(_, _, _, _, _, _, _) =>
         state.keepContact
     }
   }

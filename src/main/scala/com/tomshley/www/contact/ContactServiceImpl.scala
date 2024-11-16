@@ -23,7 +23,7 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
 
-  implicit private val timeout: Timeout =
+  given timeout: Timeout =
     Timeout.create(
       system.settings.config
         .getDuration("www-tomshley-com-contact-service.ask-timeout")
@@ -42,7 +42,7 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
     val reply: Future[InboundContact.Summary] = {
       entityRef.askWithStatus(
         InboundContact
-          .CustomerContactRequest(in.name, in.phone, in.email, in.message, _)
+          .CreateCustomerContactRequest(in.name, in.phone, in.email, in.message, _)
       )
     }
     val response = reply.map(summary => {
