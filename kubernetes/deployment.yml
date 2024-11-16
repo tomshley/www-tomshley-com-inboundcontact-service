@@ -102,18 +102,3 @@ spec:
                 secretKeyRef:
                   name: yugabytedb-connection
                   key: password
-            - name: KAFKA_BROKER_SERVER
-              valueFrom:
-                secretKeyRef:
-                  name: kafka-connection
-                  key: hostname
-            - name: KAFKA_CLUSTER_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: kafka-connection
-                  key: username
-            - name: KAFKA_CLUSTER_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: kafka-connection
-                  key: password
