@@ -11,7 +11,7 @@ val contactService =
     .enablePlugins(ValueAddProjectPlugin, ForkJVMRunConfigPlugin)
     .sourceDependency(
       ProjectRef(file("../www-tomshley-com-proto"), "www-tomshley-com-proto"),
-      "com.tomshley.www" % "www-tomshley-com-proto_3" % "0.0.1"
+      "com.tomshley.www" % "www-tomshley-com-proto_3" % "0.0.2"
     )
     .settings(
       resolvers += "Tomshley Hexagonal Registry" at
@@ -36,6 +36,6 @@ val contactService =
         ),
         "hexagonal-lib"
       ),
-      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.13"
+      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.16"
     )
     .settings(protoPackageRegistrySettings *)
