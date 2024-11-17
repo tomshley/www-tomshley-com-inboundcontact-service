@@ -8,7 +8,7 @@ lazy val protoPackageRegistrySettings = Seq(
 
 val contactService =
   publishableProject("www-tomshley-com-contact-service", Some(file(".")))
-    .enablePlugins(ValueAddProjectPlugin, ForkJVMRunConfigPlugin)
+    .enablePlugins(ValueAddProjectPlugin, ForkJVMRunConfigPlugin, VersionFilePlugin)
     .sourceDependency(
       ProjectRef(file("../www-tomshley-com-proto"), "www-tomshley-com-proto"),
       "com.tomshley.www" % "www-tomshley-com-proto_3" % "0.0.2"
