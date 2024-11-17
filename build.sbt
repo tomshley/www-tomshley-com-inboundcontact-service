@@ -36,6 +36,6 @@ val contactService =
         ),
         "hexagonal-lib"
       ),
-      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.16"
+      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.17"
     )
     .settings(protoPackageRegistrySettings *)
