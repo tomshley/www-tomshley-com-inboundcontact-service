@@ -1,12 +1,6 @@
-/*
-
-    val kafkaTopic = system.settings.config.getString("www-tomshley-com-contact-service.kafka.topic")
-    val sendProducer = ProducerBoilerplate.init(kafkaTopic, system)
- */
-
 package com.tomshley.www.contact
 
-import com.tomshley.hexagonal.lib.kafka.util.ProducerBoilerplate
+import com.tomshley.hexagonal.lib.kafka.util.ProducerProtoBoilerplate
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.cluster.sharding.typed.scaladsl.ShardedDaemonProcess
 import org.apache.pekko.persistence.r2dbc.query.scaladsl.R2dbcReadJournal
@@ -20,8 +14,8 @@ object PublishEventsProjection {
     There are alternative ways of running the ProjectionBehavior as described in Running a Projection, but note that when using the R2DBC plugin as SourceProvider it is recommended to use eventsBySlices and not eventsByTag.
      */
     val kafkaTopic = system.settings.config.getString("www-tomshley-com-contact-service.kafka.topic")
-    val sendProducer = ProducerBoilerplate.init(system)
-    
+    val sendProducer = ProducerProtoBoilerplate.init(system)
+
     val numberOfSliceRanges: Int = system.settings.config.getInt("pekko.management.cluster.bootstrap.required-contact-point-nr")
     val sliceRanges: Seq[Range] = EventSourcedProvider.sliceRanges(system, R2dbcReadJournal.Identifier, numberOfSliceRanges)
 
