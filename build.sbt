@@ -6,28 +6,25 @@ lazy val protoPackageRegistrySettings = Seq(
   credentials += Credentials(file("./.secure_files/.credentials.gitlab"))
 )
 
+lazy val hexagonalSettings = Seq(
+  resolvers += "Tomshley Hexagonal Registry" at
+    "https://gitlab.com/api/v4/projects/61841284/packages/maven",
+)
+lazy val dockerSettings = Seq(
+  dockerExposedPorts ++= Seq(9900, 8080),
+  dockerBaseImage := "eclipse-temurin:21-jre-jammy",
+  dockerUsername := Some("www-tomshley-com-contact-service"),
+  dockerRepository := Some(
+    "registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech"
+  )
+)
+
 val contactService =
   publishableProject("www-tomshley-com-contact-service", Some(file(".")))
-    .enablePlugins(ValueAddProjectPlugin, ForkJVMRunConfigPlugin, VersionFilePlugin)
+    .enablePlugins(ValueAddProjectPlugin, ForkJVMRunConfigPlugin, VersionFilePlugin, SecureFilesPlugin)
     .sourceDependency(
       ProjectRef(file("../www-tomshley-com-proto"), "www-tomshley-com-proto"),
       "com.tomshley.www" % "www-tomshley-com-proto_3" % "0.0.2"
-    )
-    .settings(
-      resolvers += "Tomshley Hexagonal Registry" at
-        "https://gitlab.com/api/v4/projects/61841284/packages/maven",
-      Compile / run / mainClass := Some("com.tomshley.www.contact.main"),
-      /*
-       * grpc server
-       * web server
-       */
-      dockerExposedPorts ++= Seq(9900, 8080),
-      dockerBaseImage := "eclipse-temurin:21-jre-jammy",
-      dockerUsername := Some("www-tomshley-com-contact-service"),
-      dockerRepository := Some(
-        "registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech"
-      ),
-      Compile / unmanagedResourceDirectories += baseDirectory.value / ".secure_files"
     )
     .sourceDependency(
       ProjectRef(
@@ -36,6 +33,11 @@ val contactService =
         ),
         "hexagonal-lib"
       ),
-      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.18"
+      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.19"
+    )
+    .settings(
+      Compile / run / mainClass := Some("com.tomshley.www.contact.main"),
     )
     .settings(protoPackageRegistrySettings *)
+    .settings(hexagonalSettings *)
+    .settings(dockerSettings *)

@@ -9,13 +9,10 @@ package com.tomshley.www.contact
 import com.tomshley.hexagonal.lib.kafka.util.ProducerBoilerplate
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.cluster.sharding.typed.scaladsl.ShardedDaemonProcess
-import org.apache.pekko.persistence.query.Offset
 import org.apache.pekko.persistence.r2dbc.query.scaladsl.R2dbcReadJournal
-import org.apache.pekko.persistence.query.typed.EventEnvelope
 import org.apache.pekko.projection.eventsourced.scaladsl.EventSourcedProvider
 import org.apache.pekko.projection.r2dbc.scaladsl.R2dbcProjection
-import org.apache.pekko.projection.scaladsl.SourceProvider
-import org.apache.pekko.projection.{Projection, ProjectionBehavior, ProjectionId, eventsourced}
+import org.apache.pekko.projection.{ProjectionBehavior, ProjectionId, eventsourced}
 
 object PublishEventsProjection {
   def init(system: ActorSystem[?]): Unit = {

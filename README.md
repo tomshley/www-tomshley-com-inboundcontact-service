@@ -1,32 +1,3 @@
-### Local DDL
-```shell
-docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_persistence_tables_yugabyte.sql
-docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_projection_tables_yugabyte.sql
-docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_query_tables_yugabyte.sql
-```
-
-### Setup Azure
-```shell
-az login
-```
-```shell
-az account set --subscription 8a890cc0-2d47-407c-a6e5-c8cb6b37139e
-```
-```shell
-az aks get-credentials --resource-group www-tomshley-com-k8s-resources --name www-tomshley-com-k8s --overwrite-existing
-```
-```shell
-kubelogin convert-kubeconfig -l azurecli
-```
-
-
-### Setup GKE
-```shell
-gcloud auth login
-```
-```shell
-gcloud container clusters get-credentials www-tomshley-com-cluster-1 --region us-east4 --project www-tomshley-com-20241010
-```
 ### Setup Cluster Registry Auth
 ```shell
 source ./.secure_files/.tfstate.env
@@ -40,27 +11,6 @@ export YUGABYTEDB_PASSWORD_BASE64=$(echo -n "$YUGABYTEDB_PASSWORD" | base64 -w 0
 export KAFKA_BROKER_SERVER_BASE64=$(echo -n "$CONFLUENTCLOUD_BROKER_ENDPOINT" | base64 -w 0);
 export KAFKA_CLUSTER_KEY_BASE64=$(echo -n "$CONFLUENTCLOUD_CLUSTER_KEY" | base64 -w 0);
 export KAFKA_CLUSTER_SECRET_BASE64=$(echo -n "$CONFLUENTCLOUD_CLUSTER_PASSWORD" | base64 -w 0);
-```
-
-### Local Dev - Setup Minikube
-```shell
-minikube delete
-minikube start                                                                                               
-minikube addons enable ingress
-minikube addons enable metrics-server
-
-eval $(minikube -p minikube docker-env)
-
-export KUBECONFIG=~/.kube/config
-kubectl config set-context docker-desktop
-```
-
-### K8s Dashboard User
-```shell
-kubectl config set-context --current --namespace=kubernetes-dashboard
-kubectl apply -f kubernetes/dashboard-user.yml
-kubectl apply -f kubernetes/dashboard-binding.yml
-kubectl -n kubernetes-dashboard create token admin-user | pbcopy 
 ```
 
 ### Setup Yugabyte
@@ -91,8 +41,11 @@ helm install www-tomshley-com-data-yb yugabytedb/yugabyte \
 --version 2024.1.3 --namespace www-tomshley-com-data-yb-1 --wait
 ```
 
+### Local DDL
 ```shell
-kubectl --namespace www-tomshley-com-data-yb-1 exec -it yb-tserver-1 -- sh -c /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_persistence_tables_yugabyte.sql
+docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_persistence_tables_yugabyte.sql
+docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_projection_tables_yugabyte.sql
+docker exec -i yb-tserver-n1 /home/yugabyte/bin/ysqlsh -h yb-tserver-n1 -t < ddl-scripts/create_query_tables_yugabyte.sql
 ```
 
 If you want to set up port forwarding or a yql shell
@@ -130,22 +83,6 @@ Tail logs
 kubectl logs --follow -l app=www-tomshley-com-contact-service --namespace=www-tomshley-com-contact-service-namespace
 ```
 
-Port forward the service
-```shell
-kubectl port-forward service/www-tomshley-com-contact-service-nlb 8181:80 -n www-tomshley-com-contact-service-namespace
-```
-```shell
-kubectl port-forward service/www-tomshley-com-contact-service-k8service 8181:9900 -n www-tomshley-com-contact-service-namespace
-kubectl port-forward pod/www-tomshley-com-contact-service-5fb58d8b5f-8wbls 8181:9900 -n www-tomshley-com-contact-service-namespace
-```
 ```shell
 grpcurl -d '{"name":"Tom Schena", "phone":"2156013948", "email":"tom@tom.com", "message":"hello world"}' -plaintext 127.0.0.1:8181 contact.ContactService.InboundContact
-```
-```shell
-kubectl get pod/www-tomshley-com-contact-service-5fb58d8b5f-8wbls -n www-tomshley-com-contact-service-namespace --template='{{(index (index .spec.containers 0).ports 0).containerPort}}{{"\n"}}'
-```
-```shell
-kubectl exec --stdin --tty www-tomshley-com-contact-service-7f8fbd4449-4whwm -- /bin/bash
-curl api.ipify.org
-wget -qO - https://api.ipify.org
 ```
