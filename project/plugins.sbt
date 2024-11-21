@@ -4,6 +4,6 @@ resolvers += "GitLab" at
 addSbtPlugin(
   "com.tomshley.hexagonal" %
     "hexagonal-plugin-projectsettings" %
-    "0.0.15"
+    "0.0.16"
 )
 addSbtPlugin("com.eed3si9n" % "sbt-sriracha" % "0.1.0")

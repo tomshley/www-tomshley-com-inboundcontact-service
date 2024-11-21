@@ -29,7 +29,7 @@ spec:
       containers:
         - name: www-tomshley-com-contact-service
           # use specific image version from docker publish
-          image: registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech/www-tomshley-com-contact-service/www-tomshley-com-contact-service:0.0.0-18-1e7ee59a
+          image: registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech/www-tomshley-com-contact-service/www-tomshley-com-contact-service:0.0.4
           imagePullPolicy: IfNotPresent
           # these will need to be increased tuned for production environments!
           # Standard Akka Performance reference

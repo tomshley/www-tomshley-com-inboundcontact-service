@@ -1,6 +1,6 @@
 package com.tomshley.www.contact
 
-import com.tomshley.hexagonal.lib.kafka.util.KafkaKeyMessageEnvelope
+import com.tomshley.hexagonal.lib.kafka.util.KafkaKeyProtoMessageEnvelope
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.pekko.Done
 import org.apache.pekko.actor.typed.ActorSystem
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory
 import scala.concurrent.{ExecutionContext, Future}
 
 class PublishEventsProjectionHandler(system: ActorSystem[?], kafkaTopic:String, sendProducer: SendProducer[String, Array[Byte]])
-  extends org.apache.pekko.projection.scaladsl.Handler[org.apache.pekko.persistence.query.typed.EventEnvelope[com.tomshley.www.contact.InboundContact.Event]]() {
+  extends Handler[typed.EventEnvelope[InboundContact.Event]]() {
   given ec:ExecutionContext = system.executionContext
 
   private val logger = LoggerFactory.getLogger(getClass)
@@ -20,20 +20,20 @@ class PublishEventsProjectionHandler(system: ActorSystem[?], kafkaTopic:String, 
   private final val serviceName = "www-tomshley-com-contact-service"
 
 
-  private def serializeRequestToEvent(envelope: typed.EventEnvelope[InboundContact.Event]): Option[KafkaKeyMessageEnvelope] = {
+  private def serializeRequestToEvent(envelope: typed.EventEnvelope[InboundContact.Event]): Option[KafkaKeyProtoMessageEnvelope] = {
     envelope.event match {
       case InboundContact.CustomerContactReceived(contactUUID, name, phone, email, message, inboundTime) =>
-        Some(KafkaKeyMessageEnvelope(
+        Some(KafkaKeyProtoMessageEnvelope(
           serviceName,
           envelope, proto.CustomerContactReceived(contactUUID.toString, name, phone, email, message, inboundTime.toEpochMilli.intValue)
         ))
       case InboundContact.ContactKept(salespersonId, contactUUID, name, phone, email, message, keptTime) =>
-        Some(KafkaKeyMessageEnvelope(
+        Some(KafkaKeyProtoMessageEnvelope(
           serviceName,
           envelope, proto.ContactKept(salespersonId, contactUUID.toString, name, phone, email, message, keptTime.toEpochMilli.intValue)
         ))
       case InboundContact.ContactTossed(salespersonId, contactUUID, name, phone, email, message, tossTime) =>
-        Some(KafkaKeyMessageEnvelope(
+        Some(KafkaKeyProtoMessageEnvelope(
           serviceName,
           envelope, proto.ContactTossed(salespersonId, contactUUID.toString, name, phone, email, message, tossTime.toEpochMilli.intValue)
         ))
@@ -42,7 +42,7 @@ class PublishEventsProjectionHandler(system: ActorSystem[?], kafkaTopic:String, 
     }
   }
 
-  private def sendProducerRecord(kafkaKeyMessageEnvelope: KafkaKeyMessageEnvelope): Future[Done] = {
+  private def sendProducerRecord(kafkaKeyMessageEnvelope: KafkaKeyProtoMessageEnvelope): Future[Done] = {
     val producerRecord = new ProducerRecord(kafkaTopic, kafkaKeyMessageEnvelope.key, kafkaKeyMessageEnvelope.messageBytes)
     val result = sendProducer.send(producerRecord)
     result.map(_ => {
