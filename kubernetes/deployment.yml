@@ -2,34 +2,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: www-tomshley-com-contact-service
-  name: www-tomshley-com-contact-service
-  namespace: www-tomshley-com-contact-service-namespace
+    app: www-tomshley-com-inboundcontact-service
+  name: www-tomshley-com-inboundcontact-service
+  namespace: www-tomshley-com-inboundcontact-service-namespace
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: www-tomshley-com-contact-service
+      app: www-tomshley-com-inboundcontact-service
   template:
     metadata:
       labels:
-        app: www-tomshley-com-contact-service
-        actorSystemName: www-tomshley-com-contact-service
+        app: www-tomshley-com-inboundcontact-service
+        actorSystemName: www-tomshley-com-inboundcontact-service
     spec:
       imagePullSecrets:
         - name: registry-credentials
       # If dedicated nodes and taints are required:
       # nodeSelector:
-      #   cloud.google.com/gke-nodepool: www-tomshley-com-pool-contactsvc
+      #   cloud.google.com/gke-nodepool: www-tomshley-com-pool-inboundcontactsvc
       # tolerations:
       #   - key: "www-tomshley-com-pooltaintdedicated"
       #     operator: "Equal"
-      #     value: "www-tomshley-com-pool-contactsvc-taint"
+      #     value: "www-tomshley-com-pool-inboundcontactsvc-taint"
       #     effect: "NoSchedule"
       containers:
-        - name: www-tomshley-com-contact-service
+        - name: www-tomshley-com-inboundcontact-service
           # use specific image version from docker publish
-          image: registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech/www-tomshley-com-contact-service/www-tomshley-com-contact-service:0.0.5
+          image: registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech/www-tomshley-com-inboundcontact-service/www-tomshley-com-inboundcontact-service:0.0.6
           imagePullPolicy: IfNotPresent
           # these will need to be increased tuned for production environments!
           # Standard Akka Performance reference

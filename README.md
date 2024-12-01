@@ -62,14 +62,14 @@ echo "$DOCKER_PUSH_REGISTRY_PASS" | docker login $DOCKER_PUSH_REGISTRY --usernam
 
 Push the latest build to dock
 ```shell
-docker push registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech/www-tomshley-com-contact-service/www-tomshley-com-contact-service:latest
+docker push registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech/www-tomshley-com-inboundcontact-service/www-tomshley-com-inboundcontact-service:latest
 ```
 
 ### Deploy The Service
 ```shell
-kubectl delete namespace www-tomshley-com-contact-service-namespace
+kubectl delete namespace www-tomshley-com-inboundcontact-service-namespace
 kubectl apply -f kubernetes/namespace.json
-kubectl config set-context --current --namespace=www-tomshley-com-contact-service-namespace
+kubectl config set-context --current --namespace=www-tomshley-com-inboundcontact-service-namespace
 envsubst < kubernetes/credentials-registry.yml | kubectl apply -f -
 envsubst < kubernetes/connection-kafka.yml | kubectl apply -f -
 envsubst < kubernetes/connection-yugabytedb.yml | kubectl apply -f -
@@ -80,9 +80,9 @@ kubectl apply -f kubernetes/deployment.yml
 
 Tail logs
 ```shell
-kubectl logs --follow -l app=www-tomshley-com-contact-service --namespace=www-tomshley-com-contact-service-namespace
+kubectl logs --follow -l app=www-tomshley-com-inboundcontact-service --namespace=www-tomshley-com-inboundcontact-service-namespace
 ```
 
 ```shell
-grpcurl -d '{"name":"Tom Schena", "phone":"2156013948", "email":"tom@tom.com", "message":"hello world"}' -plaintext 127.0.0.1:8181 contact.ContactService.InboundContact
+grpcurl -d '{"name":"Tom Schena", "phone":"2156013948", "email":"tom@tom.com", "message":"hello world"}' -plaintext 127.0.0.1:8181 inboundcontact.InboundContactService.InboundContact
 ```

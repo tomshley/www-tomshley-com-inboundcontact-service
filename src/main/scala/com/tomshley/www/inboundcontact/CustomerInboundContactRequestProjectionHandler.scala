@@ -1,6 +1,6 @@
-package com.tomshley.www.contact
+package com.tomshley.www.inboundcontact
 
-import com.tomshley.www.contact.repository.CustomerContactRequestRepository
+import com.tomshley.www.inboundcontact.repository.CustomerContactRequestRepository
 import org.apache.pekko.Done
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.persistence.query.typed.EventEnvelope

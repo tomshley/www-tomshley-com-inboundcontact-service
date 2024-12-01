@@ -2,9 +2,9 @@
   "kind": "Namespace",
   "apiVersion": "v1",
   "metadata": {
-    "name": "www-tomshley-com-contact-service-namespace",
+    "name": "www-tomshley-com-inboundcontact-service-namespace",
     "labels": {
-      "name": "www-tomshley-com-contact-service-namespace"
+      "name": "www-tomshley-com-inboundcontact-service-namespace"
     }
   }
 }

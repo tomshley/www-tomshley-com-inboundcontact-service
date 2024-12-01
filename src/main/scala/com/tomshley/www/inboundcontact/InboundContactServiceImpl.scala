@@ -1,12 +1,12 @@
-package com.tomshley.www.contact
+package com.tomshley.www.inboundcontact
 
 import com.tomshley.hexagonal.lib.reqreply.Idempotency
-import com.tomshley.www.contact.proto.{
-  GetContactRequest,
+import com.tomshley.www.inboundcontact.proto.{
+  GetInboundContactRequest,
   InboundContactResponse,
   InitiateInboundContactRequest,
-  KeepContactRequest,
-  TossContactRequest
+  KeepInboundContactRequest,
+  TossInboundContactRequest
 }
 import io.grpc.Status
 import org.apache.pekko.actor.typed.ActorSystem
@@ -18,7 +18,7 @@ import org.slf4j.{Logger, LoggerFactory}
 import java.util.concurrent.TimeoutException
 import scala.concurrent.Future
 
-class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
+class InboundContactServiceImpl(system: ActorSystem[?]) extends proto.InboundContactService {
   import system.executionContext
 
   private val logger: Logger = LoggerFactory.getLogger(getClass)
@@ -26,7 +26,7 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
   given timeout: Timeout =
     Timeout.create(
       system.settings.config
-        .getDuration("www-tomshley-com-contact-service.ask-timeout")
+        .getDuration("www-tomshley-com-inboundcontact-service.ask-timeout")
     )
 
   private val inboundContactCluster = ClusterSharding(system)
@@ -50,8 +50,8 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
 
       InboundContactResponse(
         replyMessage = "Thank you for submitting a contact request!",
-        contact =
-          Some(proto.Contact(contactId = summary.contactUUID.get.toString))
+        inboundContact =
+          Some(proto.InboundContact(inboundContactUUID = summary.contactUUID.get.toString))
       )
     })
     convertError(response)
@@ -74,10 +74,10 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
     }
   }
 
-  override def getContact(
-    in: GetContactRequest
+  override def getInboundContact(
+    in: GetInboundContactRequest
   ): Future[InboundContactResponse] = {
-    val contactUUID = InboundContact.generateEntityUUID(Some(in.contactId))
+    val contactUUID = InboundContact.generateEntityUUID(Some(in.inboundContactUUID))
     val entityRef = inboundContactCluster.entityRefFor(
       InboundContact.EntityKey,
       contactUUID.toString
@@ -87,14 +87,14 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
         if (contact.contactUUID.isEmpty)
           throw new GrpcServiceException(
             Status.NOT_FOUND
-              .withDescription(s"Contact ${in.contactId} not found")
+              .withDescription(s"Contact ${in.inboundContactUUID} not found")
           )
         else {
           logger.info("response {};", contact.contactUUID)
           InboundContactResponse(
             replyMessage = "You found a contact, thank you!",
-            contact =
-              Some(proto.Contact(contactId = contact.contactUUID.get.toString))
+            inboundContact =
+              Some(proto.InboundContact(inboundContactUUID = contact.contactUUID.get.toString))
           )
         }
 
@@ -102,10 +102,10 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
     convertError(response)
   }
 
-  override def tossContact(
-    in: TossContactRequest
+  override def tossInboundContact(
+    in: TossInboundContactRequest
   ): Future[InboundContactResponse] = {
-    val contactUUID = InboundContact.generateEntityUUID(Some(in.contactId))
+    val contactUUID = InboundContact.generateEntityUUID(Some(in.inboundContactUUID))
     val entityRef = inboundContactCluster
       .entityRefFor(InboundContact.EntityKey, contactUUID.toString)
     val reply: Future[InboundContact.Summary] =
@@ -118,18 +118,18 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
 
       InboundContactResponse(
         replyMessage = "You tossed a contact, hope it was worth it!",
-        contact =
-          Some(proto.Contact(contactId = summary.contactUUID.get.toString))
+        inboundContact =
+          Some(proto.InboundContact(inboundContactUUID = summary.contactUUID.get.toString))
       )
     })
     convertError(response)
   }
 
-  override def keepContact(
-    in: KeepContactRequest
+  override def keepInboundContact(
+    in: KeepInboundContactRequest
   ): Future[InboundContactResponse] = {
 
-    val contactUUID = InboundContact.generateEntityUUID(Some(in.contactId))
+    val contactUUID = InboundContact.generateEntityUUID(Some(in.inboundContactUUID))
     val entityRef = inboundContactCluster
       .entityRefFor(InboundContact.EntityKey, contactUUID.toString)
     val reply: Future[InboundContact.Summary] =
@@ -142,8 +142,8 @@ class ContactServiceImpl(system: ActorSystem[?]) extends proto.ContactService {
 
       InboundContactResponse(
         replyMessage = "You kept a contact, hope it was worth it!",
-        contact =
-          Some(proto.Contact(contactId = summary.contactUUID.get.toString))
+        inboundContact =
+          Some(proto.InboundContact(inboundContactUUID = summary.contactUUID.get.toString))
       )
     })
     convertError(response)
