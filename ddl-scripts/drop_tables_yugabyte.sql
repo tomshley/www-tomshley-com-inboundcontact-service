@@ -1,5 +1,5 @@
 
-DROP TABLE IF EXISTS customer_contact_requests;
+DROP TABLE IF EXISTS customer_inboundcontact_requests;
 
 DROP INDEX event_journal_slice_idx;
 DROP INDEX snapshot_slice_idx;

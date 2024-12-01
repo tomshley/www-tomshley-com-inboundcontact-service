@@ -1,4 +1,4 @@
-package com.tomshley.www.contact
+package com.tomshley.www.inboundcontact
 
 import com.tomshley.hexagonal.lib.kafka.util.ProducerProtoBoilerplate
 import org.apache.pekko.actor.typed.ActorSystem
@@ -13,7 +13,7 @@ object PublishEventsProjection {
     /* Note:
     There are alternative ways of running the ProjectionBehavior as described in Running a Projection, but note that when using the R2DBC plugin as SourceProvider it is recommended to use eventsBySlices and not eventsByTag.
      */
-    val kafkaTopic = system.settings.config.getString("www-tomshley-com-contact-service.kafka.topic")
+    val kafkaTopic = system.settings.config.getString("www-tomshley-com-inboundcontact-service.kafka.topic")
     val sendProducer = ProducerProtoBoilerplate.init(system)
 
     val numberOfSliceRanges: Int = system.settings.config.getInt("pekko.management.cluster.bootstrap.required-contact-point-nr")
@@ -35,7 +35,7 @@ object PublishEventsProjection {
       val maxSlice = sliceRange.max
 
       val projectionId =
-        ProjectionId("PublishEventsProjection", s"contact-service-inboundcontact-$minSlice-$maxSlice")
+        ProjectionId("PublishEventsProjection", s"inboundcontact-service-inboundcontact-$minSlice-$maxSlice")
 
 
       R2dbcProjection.atLeastOnceAsync(

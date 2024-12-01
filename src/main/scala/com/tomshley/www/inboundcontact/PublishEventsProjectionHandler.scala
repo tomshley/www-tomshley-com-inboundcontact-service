@@ -1,4 +1,4 @@
-package com.tomshley.www.contact
+package com.tomshley.www.inboundcontact
 
 import com.tomshley.hexagonal.lib.kafka.util.KafkaKeyProtoMessageEnvelope
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -17,7 +17,7 @@ class PublishEventsProjectionHandler(system: ActorSystem[?], kafkaTopic:String, 
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private final val serviceName = "www-tomshley-com-contact-service"
+  private final val serviceName = "www-tomshley-com-inboundcontact-service"
 
 
   private def serializeRequestToEvent(envelope: typed.EventEnvelope[InboundContact.Event]): Option[KafkaKeyProtoMessageEnvelope] = {
@@ -25,17 +25,17 @@ class PublishEventsProjectionHandler(system: ActorSystem[?], kafkaTopic:String, 
       case InboundContact.CustomerContactReceived(contactUUID, name, phone, email, message, inboundTime) =>
         Some(KafkaKeyProtoMessageEnvelope(
           serviceName,
-          envelope, proto.CustomerContactReceived(contactUUID.toString, name, phone, email, message, inboundTime.toEpochMilli.intValue)
+          envelope, proto.CustomerInboundContactReceived(contactUUID.toString, name, phone, email, message, inboundTime.toEpochMilli.intValue)
         ))
       case InboundContact.ContactKept(salespersonId, contactUUID, name, phone, email, message, keptTime) =>
         Some(KafkaKeyProtoMessageEnvelope(
           serviceName,
-          envelope, proto.ContactKept(salespersonId, contactUUID.toString, name, phone, email, message, keptTime.toEpochMilli.intValue)
+          envelope, proto.InboundContactKept(salespersonId, contactUUID.toString, name, phone, email, message, keptTime.toEpochMilli.intValue)
         ))
       case InboundContact.ContactTossed(salespersonId, contactUUID, name, phone, email, message, tossTime) =>
         Some(KafkaKeyProtoMessageEnvelope(
           serviceName,
-          envelope, proto.ContactTossed(salespersonId, contactUUID.toString, name, phone, email, message, tossTime.toEpochMilli.intValue)
+          envelope, proto.InboundContactTossed(salespersonId, contactUUID.toString, name, phone, email, message, tossTime.toEpochMilli.intValue)
         ))
 
       case _ => None
