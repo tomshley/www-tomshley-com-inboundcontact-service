@@ -13,18 +13,18 @@ lazy val hexagonalSettings = Seq(
 lazy val dockerSettings = Seq(
   dockerExposedPorts ++= Seq(9900, 8080),
   dockerBaseImage := "eclipse-temurin:21-jre-jammy",
-  dockerUsername := Some("www-tomshley-com-contact-service"),
+  dockerUsername := Some("www-tomshley-com-inboundcontact-service"),
   dockerRepository := Some(
     "registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech"
   )
 )
 
-val contactService =
-  publishableProject("www-tomshley-com-contact-service", Some(file(".")))
+val inboundContactService =
+  publishableProject("www-tomshley-com-inboundcontact-service", Some(file(".")))
     .enablePlugins(ValueAddProjectPlugin, ForkJVMRunConfigPlugin, VersionFilePlugin, SecureFilesPlugin)
     .sourceDependency(
       ProjectRef(file("../www-tomshley-com-proto"), "www-tomshley-com-proto"),
-      "com.tomshley.www" % "www-tomshley-com-proto_3" % "0.0.2"
+      "com.tomshley.www" % "www-tomshley-com-proto_3" % "0.0.4"
     )
     .sourceDependency(
       ProjectRef(
@@ -33,10 +33,10 @@ val contactService =
         ),
         "hexagonal-lib"
       ),
-      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.20"
+      "com.tomshley.hexagonal" % "hexagonal-lib_3" % "0.0.22"
     )
     .settings(
-      Compile / run / mainClass := Some("com.tomshley.www.contact.main"),
+      Compile / run / mainClass := Some("com.tomshley.www.inboundcontact.main"),
     )
     .settings(protoPackageRegistrySettings *)
     .settings(hexagonalSettings *)

@@ -1,4 +1,4 @@
-package com.tomshley.www.contact.models
+package com.tomshley.www.inboundcontact.models
 
 import java.time.Instant
 import java.util.UUID

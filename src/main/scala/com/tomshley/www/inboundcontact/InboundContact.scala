@@ -1,6 +1,6 @@
-package com.tomshley.www.contact
+package com.tomshley.www.inboundcontact
 
-import com.tomshley.www.contact.models.ContactCard
+import com.tomshley.www.inboundcontact.models.ContactCard
 import org.apache.pekko.actor.typed.{ActorRef, ActorSystem, Behavior, SupervisorStrategy}
 import org.apache.pekko.cluster.sharding.typed.scaladsl.{ClusterSharding, Entity, EntityContext, EntityTypeKey}
 import org.apache.pekko.pattern.StatusReply
@@ -142,7 +142,7 @@ object InboundContact {
   val EntityKey: EntityTypeKey[Command] =
     EntityTypeKey[Command]("InboundContact")
 
-  val tags = Vector.tabulate(5)(i => s"contact-service-inboundcontact-$i")
+  val tags = Vector.tabulate(5)(i => s"inboundcontact-service-inboundcontact-$i")
 
   def init(system: ActorSystem[?]): Unit = {
     val behaviorFactory: EntityContext[Command] => Behavior[Command] = {

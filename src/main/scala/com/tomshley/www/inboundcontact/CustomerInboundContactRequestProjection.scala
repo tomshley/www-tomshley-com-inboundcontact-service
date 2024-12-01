@@ -1,6 +1,6 @@
-package com.tomshley.www.contact
+package com.tomshley.www.inboundcontact
 
-import com.tomshley.www.contact.repository.CustomerContactRequestRepository
+import com.tomshley.www.inboundcontact.repository.CustomerContactRequestRepository
 import org.apache.pekko.actor.typed.ActorSystem
 import org.apache.pekko.cluster.sharding.typed.scaladsl.ShardedDaemonProcess
 import org.apache.pekko.persistence.query.Offset
@@ -34,7 +34,7 @@ object CustomerContactRequestProjection {
       val minSlice = sliceRange.min
       val maxSlice = sliceRange.max
       val projectionId =
-        ProjectionId("CustomerContactRequestProjection", s"contact-service-inboundcontact-$minSlice-$maxSlice")
+        ProjectionId("CustomerContactRequestProjection", s"inboundcontact-service-inboundcontact-$minSlice-$maxSlice")
 
       R2dbcProjection.exactlyOnce(
         projectionId,

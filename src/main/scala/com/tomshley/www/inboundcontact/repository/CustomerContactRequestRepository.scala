@@ -1,6 +1,6 @@
-package com.tomshley.www.contact.repository
+package com.tomshley.www.inboundcontact.repository
 
-import com.tomshley.www.contact.models.CustomerContactRequest
+import com.tomshley.www.inboundcontact.models.CustomerContactRequest
 import org.apache.pekko.projection.r2dbc.scaladsl.R2dbcSession
 
 import java.time.Instant
@@ -10,23 +10,23 @@ import scala.collection.mutable.Stack
 import scala.concurrent.Future
 
 trait CustomerContactRequestRepository {
-  protected final val tableName = "customer_contact_requests"
+  protected final val tableName = "customer_inboundcontact_requests"
 
-  def update(session: R2dbcSession, contactId: UUID, name: String, phone: String, email: String, message: String, inboundTime: Instant): Future[Int]
+  def update(session: R2dbcSession, inboundContactUUID: UUID, name: String, phone: String, email: String, message: String, inboundTime: Instant): Future[Int]
 
-  def getContactRequest(session: R2dbcSession, contactId: UUID): Future[Option[CustomerContactRequest]]
+  def getContactRequest(session: R2dbcSession, inboundContactUUID: UUID): Future[Option[CustomerContactRequest]]
 
   def listContactRequests(session: R2dbcSession, limit: Option[Int], offset: Option[Int]): Future[IndexedSeq[CustomerContactRequest]]
 
-  def remove(session: R2dbcSession, contactId: UUID): Future[Int]
+  def remove(session: R2dbcSession, inboundContactUUID: UUID): Future[Int]
 }
 
 class CustomerContactRequestRepositoryImpl() extends CustomerContactRequestRepository {
-  override def update(session: R2dbcSession, contactId: UUID, name: String, phone: String, email: String, message: String, inboundTime: Instant): Future[Int] =
+  override def update(session: R2dbcSession, inboundContactUUID: UUID, name: String, phone: String, email: String, message: String, inboundTime: Instant): Future[Int] =
     session.updateOne(
       session
-        .createStatement(s"INSERT INTO ${tableName} (contact_id, name, phone, email, message, inbound_time_epochmilli) VALUES ($$1, $$2, $$3, $$4, $$5, $$6)")
-        .bind(0, contactId.toString)
+        .createStatement(s"INSERT INTO ${tableName} (inboundcontact_id, name, phone, email, message, inbound_time_epochmilli) VALUES ($$1, $$2, $$3, $$4, $$5, $$6)")
+        .bind(0, inboundContactUUID.toString)
         .bind(1, name)
         .bind(2, phone)
         .bind(3, email)
@@ -58,7 +58,7 @@ class CustomerContactRequestRepositoryImpl() extends CustomerContactRequestRepos
     session.select(createStatement) {
       row =>
         CustomerContactRequest(
-          row.get("contact_id", classOf[String]),
+          row.get("inboundcontact_id", classOf[String]),
           row.get("name", classOf[String]),
           row.get("phone", classOf[String]),
           row.get("email", classOf[String]),
@@ -67,14 +67,14 @@ class CustomerContactRequestRepositoryImpl() extends CustomerContactRequestRepos
         )
     }
 
-  override def getContactRequest(session: R2dbcSession, contactId: UUID): Future[Option[CustomerContactRequest]] =
+  override def getContactRequest(session: R2dbcSession, inboundContactUUID: UUID): Future[Option[CustomerContactRequest]] =
     session.selectOne(
       session
-        .createStatement(s"SELECT name, phone, email, message, inbound_time_epochmilli FROM ${tableName} WHERE contact_id = $$1")
-        .bind(0, contactId.toString)
+        .createStatement(s"SELECT name, phone, email, message, inbound_time_epochmilli FROM ${tableName} WHERE inboundcontact_id = $$1")
+        .bind(0, inboundContactUUID.toString)
     ) { row =>
       CustomerContactRequest(
-        contactId.toString,
+        inboundContactUUID.toString,
         row.get("name", classOf[String]),
         row.get("phone", classOf[String]),
         row.get("email", classOf[String]),
@@ -83,7 +83,7 @@ class CustomerContactRequestRepositoryImpl() extends CustomerContactRequestRepos
       )
     }
 
-  override def remove(session: R2dbcSession, contactId: UUID): Future[Int] = session.updateOne(
-    session.createStatement(s"DELETE FROM ${tableName} WHERE contact_id = $$1").bind(0, contactId.toString)
+  override def remove(session: R2dbcSession, inboundContactUUID: UUID): Future[Int] = session.updateOne(
+    session.createStatement(s"DELETE FROM ${tableName} WHERE inboundcontact_id = $$1").bind(0, inboundContactUUID.toString)
   )
 }
