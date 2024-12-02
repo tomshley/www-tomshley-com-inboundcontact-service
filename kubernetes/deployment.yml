@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: www-tomshley-com-inboundcontact-service
+  name: www-tomshley-com-inboundcontact-service
+  namespace: www-tomshley-com-inboundcontact-service-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: www-tomshley-com-inboundcontact-service
+  template:
+    metadata:
+      labels:
+        app: www-tomshley-com-inboundcontact-service
+        actorSystemName: www-tomshley-com-inboundcontact-service
+    spec:
+      imagePullSecrets:
+        - name: registry-credentials
+      # If dedicated nodes and taints are required:
+      # nodeSelector:
+      #   cloud.google.com/gke-nodepool: www-tomshley-com-pool-inboundcontactsvc
+      # tolerations:
+      #   - key: "www-tomshley-com-pooltaintdedicated"
+      #     operator: "Equal"
+      #     value: "www-tomshley-com-pool-inboundcontactsvc-taint"
+      #     effect: "NoSchedule"
+      containers:
+        - name: www-tomshley-com-inboundcontact-service
+          # use specific image version from docker publish
+          image: registry.gitlab.com/tomshley/brands/usa/tomshleyllc/tech/www-tomshley-com-inboundcontact-service/www-tomshley-com-inboundcontact-service:0.0.6
+          imagePullPolicy: IfNotPresent
+          # these will need to be increased tuned for production environments!
+          # Standard Akka Performance reference
+          # resources:
+          #  limits:
+          #    memory: "2Gi"
+          #  requests:
+          #    memory: "2Gi"
+          #    cpu: "1"
+
+          readinessProbe:
+            httpGet:
+              path: "/ready"
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+            initialDelaySeconds: 120
+          livenessProbe:
+            httpGet:
+              path: "/alive"
+              port: management
+            periodSeconds: 20
+            failureThreshold: 5
+            initialDelaySeconds: 30
+          ports:
+            - name: grpc
+              containerPort: 9900
+              protocol: TCP
+            - name: grpc-web
+              containerPort: 8080
+              protocol: TCP
+            - name: remoting
+              containerPort: 7355
+              protocol: TCP
+            - name: management
+              containerPort: 7626
+              protocol: TCP
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: REQUIRED_CONTACT_POINT_NR
+              value: "2"
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:InitialRAMPercentage=75 -XX:MaxRAMPercentage=75"
+            - name: APP_LABEL
+              valueFrom:
+                fieldRef:
+                  fieldPath: "metadata.labels['app']"
+            - name: YUGABYTEDB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: yugabytedb-connection
+                  key: hostname
+            - name: YUGABYTEDB_PORT
+              value: "5433"
+            - name: YUGABYTEDB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: yugabytedb-connection
+                  key: username
+            - name: YUGABYTEDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: yugabytedb-connection
+                  key: password
+            - name: KAFKA_BROKER_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-connection
+                  key: hostname
+            - name: KAFKA_CLUSTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-connection
+                  key: username
+            - name: KAFKA_CLUSTER_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-connection
+                  key: password
